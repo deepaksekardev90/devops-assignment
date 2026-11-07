@@ -1,8 +1,6 @@
 /*
 Cloud Infrastructure Automation Framework
 Component: S3 Storage Module
-Author: Adam, Head of Platform
-Optimized: For_each object looping, strict multi-tier backup archiving timelines.
 */
 
 provider "aws" {
@@ -12,7 +10,7 @@ provider "aws" {
 # Invoke your modular compliance bucket creation tier cleanly
 module "infrastructure_compliance_storage" {
   source      = "./s3_compliance_bucket"
-  environment = "production"
+  environment = "dev"
 
   # Opt-in features (both default to false in the module)
   enable_versioning = true

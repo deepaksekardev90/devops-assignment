@@ -1,5 +1,5 @@
 /*
-Wezva Technologies - Cloud Infrastructure Automation Framework
+Cloud Infrastructure Automation Framework
 Component: S3 Storage Module
 Author: Adam, Head of Platform
 Optimized: For_each object looping, strict multi-tier backup archiving timelines.
@@ -14,11 +14,13 @@ module "infrastructure_compliance_storage" {
   source      = "./s3_compliance_bucket"
   environment = "production"
 
+  # Opt-in features (both default to false in the module)
+  enable_versioning = true
+  enable_lifecycle  = true
+
   # 🎯 DYNAMIC INPUT: Simply add or append bucket name strings to this variable array block
   bucket_names = [
-    #"wezvatech-2026-tfstate",
-    "wezvatech-dvc-data-lake",
-    "wezvatech-rawdata-applog"
+
   ]
 }
 

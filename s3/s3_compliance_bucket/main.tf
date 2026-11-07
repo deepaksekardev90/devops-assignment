@@ -12,7 +12,7 @@ resource "aws_s3_bucket" "compliance_bucket" {
 
 # 2. Bind strict versioning rules to every generated bucket resource
 resource "aws_s3_bucket_versioning" "bucket_versioning" {
-  for_each = aws_s3_bucket.compliance_bucket
+  for_each = var.enable_versioning ? aws_s3_bucket.compliance_bucket : {}
   bucket   = each.value.id
 
   versioning_configuration {
@@ -22,8 +22,11 @@ resource "aws_s3_bucket_versioning" "bucket_versioning" {
 
 # 3. Inject your targeted enterprise lifecycle configuration rules
 resource "aws_s3_bucket_lifecycle_configuration" "bucket_lifecycle" {
-  for_each = aws_s3_bucket.compliance_bucket
+  for_each = var.enable_lifecycle ? aws_s3_bucket.compliance_bucket : {}
   bucket   = each.value.id
+
+  # Versioning must exist before noncurrent-version rules are meaningful
+  depends_on = [aws_s3_bucket_versioning.bucket_versioning]
 
   rule {
     id     = "platform-compliance-lifecycle-policy"
@@ -47,13 +50,20 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket_lifecycle" {
     }
 
     # Tier 4: Manage older, noncurrent tracking versions of your objects
-    noncurrent_version_transition {
-      noncurrent_days = 90
-      storage_class   = "GLACIER"
+    # Noncurrent-version rules only apply when versioning is enabled
+    dynamic "noncurrent_version_transition" {
+      for_each = var.enable_versioning ? [1] : []
+      content {
+        noncurrent_days = 90
+        storage_class   = "GLACIER"
+      }
     }
 
-    noncurrent_version_expiration {
-      noncurrent_days = 180
+    dynamic "noncurrent_version_expiration" {
+      for_each = var.enable_versioning ? [1] : []
+      content {
+        noncurrent_days = 180
+      }
     }
   }
 }
